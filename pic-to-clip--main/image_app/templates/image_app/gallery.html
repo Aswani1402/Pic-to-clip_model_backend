@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gallery</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <h2>Uploaded Images & Generated Videos</h2>
+
+    {% for image in images %}
+        <div style="margin-bottom: 20px;">
+            <img src="{{ image.image.url }}" alt="Uploaded Image" width="200">
+            <p><strong>Prompt:</strong> {{ image.prompt }}</p>
+
+            {% if image.video %}
+                <video width="320" height="240" controls>
+                    <source src="{{ image.video }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            {% else %}
+                <p><em>Video is still generating...</em></p>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    <br>
+    <a href="{% url 'upload_image' %}">Upload More</a>
+</body>
+</html>
