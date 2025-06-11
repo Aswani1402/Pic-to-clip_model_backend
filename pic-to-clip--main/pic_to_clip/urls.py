@@ -15,7 +15,7 @@ urlpatterns = [
     path('media/<path:path>/', serve, {'document_root': settings.MEDIA_ROOT}),
 
     # Redirect root URL to the image gallery
-    path('', RedirectView.as_view(url='/image_app/gallery/', permanent=False)),
+    path('', RedirectView.as_view(url='/image_app/', permanent=False)),
 ]
 
 # Add static and media URL configurations in development

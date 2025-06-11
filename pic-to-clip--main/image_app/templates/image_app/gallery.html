@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <head>
     <title>Gallery</title>
@@ -26,5 +26,319 @@
 
     <br>
     <a href="{% url 'upload_image' %}">Upload More</a>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery - Pic to Clip</title>
+    <meta name="description" content="View all your generated AI videos in one place. Download, share, and manage your video creations.">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --background: hsl(0, 0%, 100%);
+            --foreground: hsl(20, 14.3%, 4.1%);
+            --muted: hsl(60, 4.8%, 95.9%);
+            --muted-foreground: hsl(25, 5.3%, 44.7%);
+            --primary: hsl(249, 85%, 65%);
+            --primary-foreground: hsl(210, 40%, 98%);
+            --secondary: hsl(249, 89%, 70%);
+            --accent: hsl(330, 81%, 60%);
+            --border: hsl(20, 5.9%, 90%);
+            --cyan: hsl(188, 94%, 43%);
+        }
+        
+        .gradient-primary {
+            background: linear-gradient(135deg, hsl(249, 85%, 65%) 0%, hsl(249, 89%, 70%) 50%, hsl(330, 81%, 60%) 100%);
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+        
+        .btn-outline {
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--foreground);
+        }
+        
+        .btn-ghost {
+            background: transparent;
+            color: var(--muted-foreground);
+        }
+        
+        .btn-ghost:hover {
+            background: var(--muted);
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-content {
+            padding: 1rem;
+        }
+        
+        .video-card {
+            position: relative;
+            transition: transform 0.3s;
+        }
+        
+        .video-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .video-thumbnail {
+            height: 12rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .video-overlay {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+        
+        .video-processing {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: color 0.2s;
+            text-decoration: none;
+            padding: 0.5rem;
+        }
+        
+        .nav-active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .nav-inactive {
+            color: var(--muted-foreground);
+        }
+        
+        .nav-inactive:hover {
+            color: var(--primary);
+        }
+
+        .icon {
+            width: 1rem;
+            height: 1rem;
+        }
+        
+        .spinner {
+            width: 2rem;
+            height: 2rem;
+            border: 2px solid white;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .skeleton {
+            background: var(--muted);
+            border-radius: 0.25rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .hidden { display: none; }
+        
+        .gradient-orange { background: linear-gradient(to br, #fb923c, #dc2626, #9333ea); }
+        .gradient-blue { background: linear-gradient(to br, #1e3a8a, #7c3aed, #ec4899); }
+        .gradient-cyan { background: linear-gradient(to br, #06b6d4, #3b82f6, #14b8a6); }
+        .gradient-yellow { background: linear-gradient(to br, #eab308, #f97316, #dc2626); }
+        .gradient-purple { background: linear-gradient(to br, #4c1d95, #7c2d12, #ec4899); }
+        .gradient-pink { background: linear-gradient(to br, #ec4899, #eab308, #22c55e); }
+        
+        .empty-state {
+            text-align: center;
+            padding: 5rem 1rem;
+        }
+        
+        .empty-icon {
+            width: 6rem;
+            height: 6rem;
+            background: var(--muted);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem auto;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-white">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b sticky top-0 z-50" style="border-color: var(--border);">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="/image_app/" class="flex items-center space-x-2">
+                    <div class="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
+                        <svg class="icon text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold" style="color: var(--foreground);">Pic to Clip</span>
+                </a>
+                <div class="flex items-center space-x-8">
+                    <a href="/image_app/" class="nav-link nav-active">
+                        <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                        </svg>
+                        <span>Home</span>
+                    </a>
+                    <a href="/image_app/upload" class="nav-link nav-inactive">
+                        <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        <span>Create</span>
+                    </a>
+                    <a href="/image_app/gallery" class="nav-link nav-inactive">
+                        <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                        </svg>
+                        <span>Gallery</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="text-center mb-12">
+        <h1 class="text-3xl md:text-4xl font-bold mb-4" style="color: var(--foreground);">
+            Your Video Gallery
+        </h1>
+        <p class="text-xl" style="color: var(--muted-foreground);">
+            All your generated videos in one place
+        </p>
+    </div>
+
+    <!-- Filter and Sort Options -->
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+        <div class="flex items-center space-x-4">
+            <span style="color: var(--foreground);" class="font-medium">Sort by:</span>
+            <select id="sort-select" class="border border-gray-200 rounded-lg px-3 py-2" style="border-color: var(--border);">
+                <option value="recent">Most Recent</option>
+                <option value="oldest">Oldest First</option>
+                <option value="title">Title</option>
+            </select>
+        </div>
+        <a href="{% url 'upload_image' %}" class="btn btn-primary flex items-center space-x-2">
+            <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            <span>Create New Video</span>
+        </a>
+    </div>
+
+    {% if images %}
+    <!-- Gallery Grid -->
+    <div id="gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for image in images %}
+        <div class="bg-white rounded-lg shadow p-4 border" style="border-color: var(--border);">
+            <img src="{{ image.image.url }}" alt="Uploaded Image" class="rounded w-full h-48 object-cover mb-4">
+            <p class="text-sm font-medium mb-2" style="color: var(--foreground);">
+                <strong>Prompt:</strong> {{ image.prompt }}
+            </p>
+            {% if image.video %}
+                <video controls class="w-full h-40 rounded">
+                    <source src="{{ image.video }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            {% else %}
+                <p class="text-sm italic" style="color: var(--muted-foreground);">
+                    Video is still generating...
+                </p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div id="empty-state" class="text-center py-20">
+        <div class="empty-icon mb-4">
+            <svg class="h-12 w-12 mx-auto" style="color: var(--muted-foreground);" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+            </svg>
+        </div>
+        <h3 class="text-xl font-semibold mb-4" style="color: var(--foreground);">No videos yet</h3>
+        <p class="mb-8 max-w-md mx-auto" style="color: var(--muted-foreground);">
+            Start creating amazing videos from your images. Upload your first image and add a creative prompt!
+        </p>
+        <a href="{% url 'upload_image' %}" class="btn btn-primary flex items-center space-x-2">
+            <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            <span>Create Your First Video</span>
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+    <script>
+
+    </script>
 </body>
 </html>

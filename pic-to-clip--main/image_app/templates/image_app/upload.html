@@ -1,16 +1,657 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Upload Image</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Video - Pic to Clip</title>
+    <meta name="description" content="Upload an image and add a prompt to generate your AI-powered video. Transform static images into dynamic content.">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --background: hsl(0, 0%, 100%);
+            --foreground: hsl(20, 14.3%, 4.1%);
+            --muted: hsl(60, 4.8%, 95.9%);
+            --muted-foreground: hsl(25, 5.3%, 44.7%);
+            --primary: hsl(249, 85%, 65%);
+            --primary-foreground: hsl(210, 40%, 98%);
+            --secondary: hsl(249, 89%, 70%);
+            --accent: hsl(330, 81%, 60%);
+            --border: hsl(20, 5.9%, 90%);
+            --cyan: hsl(188, 94%, 43%);
+        }
+        
+        .gradient-primary {
+            background: linear-gradient(135deg, hsl(249, 85%, 65%) 0%, hsl(249, 89%, 70%) 50%, hsl(330, 81%, 60%) 100%);
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-outline {
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--foreground);
+        }
+        
+        .btn-ghost {
+            background: transparent;
+            color: var(--muted-foreground);
+        }
+        
+        .btn-ghost:hover {
+            background: var(--muted);
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-content {
+            padding: 1.5rem;
+        }
+        
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 0.75rem;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-zone:hover {
+            border-color: var(--primary);
+        }
+        
+        .upload-zone.dragover {
+            border-color: var(--primary);
+            background-color: rgba(249, 85, 65, 0.05);
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: color 0.2s;
+            text-decoration: none;
+            padding: 0.5rem;
+        }
+        
+        .nav-active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .nav-inactive {
+            color: var(--muted-foreground);
+        }
+        
+        .nav-inactive:hover {
+            color: var(--primary);
+        }
+
+        .icon {
+            width: 1rem;
+            height: 1rem;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            background-color: var(--muted);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 0.5rem;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+        
+        .step-indicator {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .step-active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .step-inactive {
+            background: var(--muted);
+            color: var(--muted-foreground);
+        }
+        
+        .spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid var(--primary);
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .big-spinner {
+            width: 4rem;
+            height: 4rem;
+            border: 4px solid var(--primary);
+            border-top: 4px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .hidden { display: none; }
+        .opacity-50 { opacity: 0.5; }
+        .pointer-events-none { pointer-events: none; }
+    </style>
 </head>
-<body>
-    <h2>Upload an Image with Prompt</h2>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Upload</button>
-    </form>
-    <br>
-    <a href="{% url 'gallery' %}">View Gallery</a>
+<body class="min-h-screen bg-white">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b sticky top-0 z-50" style="border-color: var(--border);">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="/image_app/" class="flex items-center space-x-2">
+                    <div class="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
+                        <svg class="icon text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold" style="color: var(--foreground);">Pic to Clip</span>
+                </a>
+                
+                <div class="flex items-center space-x-8">
+                    <a href="/image_app/" class="nav-link nav-active">
+                        <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                        </svg>
+                        <span>Home</span>
+                    </a>
+                    <a href="/image_app/upload" class="nav-link nav-inactive">
+                        <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        <span>Create</span>
+                    </a>
+                    <a href="/image_app/gallery" class="nav-link nav-inactive">
+                        <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                        </svg>
+                        <span>Gallery</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center mb-12">
+            <h1 class="text-3xl md:text-4xl font-bold mb-4" style="color: var(--foreground);">
+                Create Your Video
+            </h1>
+            <p class="text-xl" style="color: var(--muted-foreground);">
+                Upload an image and add a prompt to generate your video
+            </p>
+        </div>
+        
+
+        <!-- Progress Steps -->
+        <div class="mb-12">
+            <div class="flex items-center justify-center space-x-4 mb-8">
+                <div class="flex items-center">
+                    <div id="step1-indicator" class="step-indicator step-active">1</div>
+                    <span id="step1-text" class="ml-2 font-medium" style="color: var(--foreground);">Upload Image</span>
+                </div>
+                <div class="w-16 h-0.5" style="background-color: var(--border);"></div>
+                <div class="flex items-center">
+                    <div id="step2-indicator" class="step-indicator step-inactive">2</div>
+                    <span id="step2-text" class="ml-2 font-medium" style="color: var(--muted-foreground);">Add Prompt</span>
+                </div>
+                <div class="w-16 h-0.5" style="background-color: var(--border);"></div>
+                <div class="flex items-center">
+                    <div id="step3-indicator" class="step-indicator step-inactive">3</div>
+                    <span id="step3-text" class="ml-2 font-medium" style="color: var(--muted-foreground);">Generate</span>
+                </div>
+            </div>
+        </div>
+
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" id="csrf-token">
+
+
+        <!-- Upload Section -->
+        <div id="upload-section">
+            <div class="card mb-8">
+                <div class="card-content">
+                    <div class="upload-zone" id="upload-zone">
+                        <div id="upload-prompt">
+                            <svg class="h-12 w-12 mx-auto mb-4" style="color: var(--muted-foreground);" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                            </svg>
+                            <h3 class="text-xl font-semibold mb-2" style="color: var(--foreground);">Drop your image here</h3>
+                            <p class="mb-4" style="color: var(--muted-foreground);">or click to browse files</p>
+                            <button class="btn btn-primary">Choose File</button>
+                            <p class="text-sm mt-4" style="color: var(--muted-foreground);">Supports JPG, PNG, WebP up to 10MB</p>
+                        </div>
+                        <div id="image-preview" class="hidden">
+                            <img id="preview-image" class="max-w-full max-h-64 mx-auto rounded-lg shadow-md mb-4" />
+                            <div class="flex items-center justify-center space-x-4">
+                                <div class="flex items-center text-green-600">
+                                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span id="file-name" class="font-medium"></span>
+                                </div>
+                                <button id="remove-image" class="btn btn-ghost text-red-600">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <input type="file" id="file-input" name="image" class="hidden" accept="image/*" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prompt Section -->
+            <div id="prompt-section" class="card mb-8 opacity-50 pointer-events-none">
+                <div class="card-content">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center" style="color: var(--foreground);">
+                        <svg class="w-5 h-5 mr-2" style="color: var(--primary);" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zM6 7a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                        </svg>
+                        Describe Your Video
+                    </h3>
+                    <textarea 
+                        id="prompt-input"
+                        name="prompt"
+                        placeholder="Example: Make the image come alive with gentle camera movements, add subtle lighting effects, and create a dreamy atmosphere..."
+                        class="w-full h-32 p-4 border border-gray-200 rounded-lg resize-none"
+                        style="border-color: var(--border);"
+                        maxlength="500"
+                    ></textarea>
+                    <div class="flex justify-between items-center mt-4">
+                        <span class="text-sm" style="color: var(--muted-foreground);">
+                            <span id="char-count">0</span>/500 characters
+                        </span>
+                        <button class="btn btn-ghost" style="color: var(--primary);">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            Prompt Ideas
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generate Section -->
+            <div id="generate-section" class="text-center opacity-50 pointer-events-none">
+                <button id="generate-btn" type="button" class="btn btn-primary gradient-primary text-white shadow-lg">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zM6 7a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                    </svg>
+                    Generate Video
+                </button>
+                <p class="mt-4" style="color: var(--muted-foreground);">This will take about 20-30 seconds</p>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-section" class="hidden">
+            <div class="card">
+                <div class="card-content text-center">
+                    <div class="mb-6">
+                        <div class="big-spinner mx-auto"></div>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2" style="color: var(--foreground);">Generating Your Video</h3>
+                    <p class="mb-6" style="color: var(--muted-foreground);">Our AI is working its magic...</p>
+                    <div class="progress-bar mb-4">
+                        <div id="progress-fill" class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <p id="progress-text" class="text-sm" style="color: var(--muted-foreground);">Processing image...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success State -->
+        <div id="success-section" class="hidden">
+            <div class="card">
+                <div class="card-content text-center">
+                    <div class="mb-6">
+                        <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto">
+                            <svg class="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2" style="color: var(--foreground);">Video Generated Successfully!</h3>
+                    <p class="mb-6" style="color: var(--muted-foreground);">Your video is ready to download and share</p>
+                    
+                    <!-- Mock video preview -->
+                    <div class="bg-gray-100 rounded-xl p-4 mb-6 max-w-md mx-auto">
+                        <div class="gradient-primary rounded-lg h-48 flex items-center justify-center">
+                            <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <p class="text-sm mt-2" style="color: var(--muted-foreground);">video_output.mp4</p>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button class="btn btn-primary">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                            Download Video
+                        </button>
+                        <a href="/image_app/gallery" class="btn btn-outline">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M4 3a2 2 0 000 4h12a2 2 0 000-4H4z" />
+                                <path fill-rule="evenodd" d="M3 8a2 2 0 012-2v9a2 2 0 002 2h8a2 2 0 002-2V6a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" clip-rule="evenodd" />
+                            </svg>
+                            View Gallery
+                        </a>
+                        <button id="create-another" class="btn btn-ghost">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            Create Another
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let currentStep = 1;
+
+        // DOM elements
+        const csrfTokenInput = document.getElementById('csrf-token');
+        const uploadZone = document.getElementById('upload-zone');
+        const fileInput = document.getElementById('file-input');
+        const uploadPrompt = document.getElementById('upload-prompt');
+        const imagePreview = document.getElementById('image-preview');
+        const previewImage = document.getElementById('preview-image');
+        const fileName = document.getElementById('file-name');
+        const removeImageBtn = document.getElementById('remove-image');
+        const promptSection = document.getElementById('prompt-section');
+        const promptInput = document.getElementById('prompt-input');
+        const charCount = document.getElementById('char-count');
+        const generateSection = document.getElementById('generate-section');
+        const generateBtn = document.getElementById('generate-btn');
+        const uploadSection = document.getElementById('upload-section');
+        const loadingSection = document.getElementById('loading-section');
+        const successSection = document.getElementById('success-section');
+        const createAnotherBtn = document.getElementById('create-another');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+
+        // Step indicators
+        const step1Indicator = document.getElementById('step1-indicator');
+        const step1Text = document.getElementById('step1-text');
+        const step2Indicator = document.getElementById('step2-indicator');
+        const step2Text = document.getElementById('step2-text');
+        const step3Indicator = document.getElementById('step3-indicator');
+        const step3Text = document.getElementById('step3-text');
+
+        // File upload handlers
+        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('dragover', handleDragOver);
+        uploadZone.addEventListener('drop', handleDrop);
+        uploadZone.addEventListener('dragleave', handleDragLeave);
+        fileInput.addEventListener('change', handleFileSelect);
+        removeImageBtn.addEventListener('click', removeImage);
+
+        // Prompt handlers
+        promptInput.addEventListener('input', handlePromptChange);
+
+        // Generate button
+        generateBtn.addEventListener('click', generateVideo);
+
+        // Create another button
+        createAnotherBtn.addEventListener('click', resetUpload);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file.');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size must be less than 10MB.');
+                return;
+            }
+
+            selectedFile = file;
+            fileName.textContent = file.name;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                uploadPrompt.classList.add('hidden');
+                imagePreview.classList.remove('hidden');
+                updateStep(2);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage() {
+            selectedFile = null;
+            fileInput.value = '';
+            uploadPrompt.classList.remove('hidden');
+            imagePreview.classList.add('hidden');
+            updateStep(1);
+        }
+
+        function handlePromptChange() {
+            const text = promptInput.value;
+            charCount.textContent = text.length;
+            updateGenerateButton();
+        }
+
+        function updateStep(step) {
+            currentStep = step;
+            
+            // Reset all steps
+            [step1Indicator, step2Indicator, step3Indicator].forEach(el => {
+                el.className = 'step-indicator step-inactive';
+            });
+            [step1Text, step2Text, step3Text].forEach(el => {
+                el.style.color = 'var(--muted-foreground)';
+            });
+
+            // Update active steps
+            if (step >= 1) {
+                step1Indicator.className = 'step-indicator step-active';
+                step1Text.style.color = 'var(--foreground)';
+            }
+            if (step >= 2) {
+                step2Indicator.className = 'step-indicator step-active';
+                step2Text.style.color = 'var(--foreground)';
+                promptSection.classList.remove('opacity-50', 'pointer-events-none');
+            }
+            if (step >= 3) {
+                step3Indicator.className = 'step-indicator step-active';
+                step3Text.style.color = 'var(--foreground)';
+            }
+
+            updateGenerateButton();
+        }
+
+        function updateGenerateButton() {
+            const canGenerate = selectedFile && promptInput.value.trim().length > 0;
+            if (canGenerate) {
+                generateSection.classList.remove('opacity-50', 'pointer-events-none');
+                generateBtn.disabled = false;
+            } else {
+                generateSection.classList.add('opacity-50', 'pointer-events-none');
+                generateBtn.disabled = true;
+            }
+        }
+
+        function generateVideo() {
+            if (!selectedFile || !promptInput.value.trim()) return;
+
+            // Show loading state
+            uploadSection.classList.add('hidden');
+            loadingSection.classList.remove('hidden');
+            updateStep(3);
+
+            // Simulate video generation
+            simulateProgress();
+        }
+        
+        function simulateProgress() {
+            if (event) event.preventDefault();
+    const fileInput = document.getElementById('file-input');
+    const promptInput = document.getElementById('prompt-input');
+    const csrfTokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+
+    if (!fileInput || !fileInput.files[0] || !promptInput) {
+        alert('Image and prompt are required.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('image', fileInput.files[0]);
+    formData.append('prompt', promptInput.value);
+    formData.append('csrfmiddlewaretoken', csrfTokenInput?.value);
+
+    // Submit form
+    fetch('', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': csrfTokenInput?.value
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Upload failed.');
+        }
+
+        // Continue with progress simulation after upload
+        const steps = [
+            { progress: 20, text: "Analyzing image..." },
+            { progress: 40, text: "Processing prompt..." },
+            { progress: 60, text: "Generating frames..." },
+            { progress: 80, text: "Creating transitions..." },
+            { progress: 100, text: "Finalizing video..." }
+        ];
+
+        let currentStepIndex = 0;
+        const interval = setInterval(() => {
+            if (currentStepIndex < steps.length) {
+                const step = steps[currentStepIndex];
+                progressFill.style.width = step.progress + '%';
+                progressText.textContent = step.text;
+                currentStepIndex++;
+            } else {
+                clearInterval(interval);
+                setTimeout(() => {
+                    loadingSection.classList.add('hidden');
+                    successSection.classList.remove('hidden');
+                }, 1000);
+            }
+        }, 1500);
+
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Something went wrong during upload.');
+    });
+}
+
+
+        function resetUpload() {
+            selectedFile = null;
+            fileInput.value = '';
+            promptInput.value = '';
+            charCount.textContent = '0';
+            
+            uploadPrompt.classList.remove('hidden');
+            imagePreview.classList.add('hidden');
+            uploadSection.classList.remove('hidden');
+            loadingSection.classList.add('hidden');
+            successSection.classList.add('hidden');
+            
+            promptSection.classList.add('opacity-50', 'pointer-events-none');
+            generateSection.classList.add('opacity-50', 'pointer-events-none');
+            
+            updateStep(1);
+        }
+
+    
+
+
+    </script>
 </body>
 </html>

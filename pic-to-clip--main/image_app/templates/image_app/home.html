@@ -1,6 +1,280 @@
-<!html>
-<head><title>Home</title></head>
-<body>
-    <h1>Welcome to Pic to Clip</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pic to Clip - Transform Your Images Into Amazing Videos</title>
+    <meta name="description" content="Upload any image and let AI create stunning short videos with just a simple prompt. Perfect for social media, presentations, and creative projects.">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --background: hsl(0, 0%, 100%);
+            --foreground: hsl(20, 14.3%, 4.1%);
+            --muted: hsl(60, 4.8%, 95.9%);
+            --muted-foreground: hsl(25, 5.3%, 44.7%);
+            --primary: hsl(249, 85%, 65%);
+            --primary-foreground: hsl(210, 40%, 98%);
+            --secondary: hsl(249, 89%, 70%);
+            --accent: hsl(330, 81%, 60%);
+            --border: hsl(20, 5.9%, 90%);
+            --cyan: hsl(188, 94%, 43%);
+        }
+        
+        .gradient-primary {
+            background: linear-gradient(135deg, hsl(249, 85%, 65%) 0%, hsl(249, 89%, 70%) 50%, hsl(330, 81%, 60%) 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, hsl(45, 100%, 70%) 0%, hsl(330, 81%, 60%) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.05);
+            background: #f9fafb;
+        }
+        
+        .btn-outline {
+            border: 2px solid white;
+            color: white;
+            background: transparent;
+        }
+        
+        .btn-outline:hover {
+            background: white;
+            color: var(--primary);
+        }
+        
+        .feature-card {
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+        }
+        
+        .feature-icon {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem auto;
+            transition: transform 0.3s;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: color 0.2s;
+            text-decoration: none;
+            padding: 0.5rem;
+        }
+        
+        .nav-active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .nav-inactive {
+            color: var(--muted-foreground);
+        }
+        
+        .nav-inactive:hover {
+            color: var(--primary);
+        }
+
+        .icon {
+            width: 1rem;
+            height: 1rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-white">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b sticky top-0 z-50" style="border-color: var(--border);">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <a href="/image_app/" class="flex items-center space-x-2">
+                    <div class="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
+                        <svg class="icon text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold" style="color: var(--foreground);">Pic to Clip</span>
+                </a>
+                
+                <div class="flex items-center space-x-8">
+                    <a href="/image_app/" class="nav-link nav-active">
+                        <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                        </svg>
+                        <span>Home</span>
+                    </a>
+                    <a href="/image_app/upload" class="nav-link nav-inactive">
+                        <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        <span>Create</span>
+                    </a>
+                    <a href="/image_app/gallery" class="nav-link nav-inactive">
+                        <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                        </svg>
+                        <span>Gallery</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative overflow-hidden gradient-primary">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+                    Transform Your Images
+                    <br>
+                    <span class="gradient-text">
+                        Into Amazing Videos
+                    </span>
+                </h1>
+                <p class="text-xl text-gray-100 mb-8 max-w-3xl mx-auto">
+                    Upload any image and let AI create stunning short videos with just a simple prompt. 
+                    Perfect for social media, presentations, and creative projects.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <a href="upload" class="btn btn-primary">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        Start Creating
+                    </a>
+                    <a href="gallery" class="btn btn-outline">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                        </svg>
+                        View Gallery
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: var(--foreground);">
+                    Why Choose Pic to Clip?
+                </h2>
+                <p class="text-xl max-w-3xl mx-auto" style="color: var(--muted-foreground);">
+                    Powerful AI-driven video generation with an intuitive interface designed for creators of all levels.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="feature-card">
+                    <div class="feature-icon gradient-primary">
+                        <svg class="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zM6 7a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4" style="color: var(--foreground);">AI-Powered Magic</h3>
+                    <p style="color: var(--muted-foreground);">Advanced AI algorithms analyze your image and prompt to create professional-quality videos in seconds.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(to right, var(--secondary), var(--accent));">
+                        <svg class="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4" style="color: var(--foreground);">Lightning Fast</h3>
+                    <p style="color: var(--muted-foreground);">Generate stunning videos in under 30 seconds. No complex editing software or technical skills required.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: linear-gradient(to right, var(--accent), var(--cyan));">
+                        <svg class="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zM6 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7zm0 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4" style="color: var(--foreground);">Mobile Optimized</h3>
+                    <p style="color: var(--muted-foreground);">Perfect for social media content. Create videos optimized for Instagram, TikTok, and other platforms.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="py-20" style="background-color: var(--muted);">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4" style="color: var(--foreground);">
+                    How It Works
+                </h2>
+                <p class="text-xl" style="color: var(--muted-foreground);">
+                    Three simple steps to create amazing videos
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-12">
+                <!-- Step 1 -->
+                <div class="text-center">
+                    <div class="relative">
+                        <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: var(--primary);">
+                            <span class="text-2xl font-bold text-white">1</span>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4" style="color: var(--foreground);">Upload Your Image</h3>
+                    <p style="color: var(--muted-foreground);">Drag and drop or click to upload any image. We support JPG, PNG, and WebP formats.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="text-center">
+                    <div class="relative">
+                        <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: var(--secondary);">
+                            <span class="text-2xl font-bold text-white">2</span>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4" style="color: var(--foreground);">Add Your Prompt</h3>
+                    <p style="color: var(--muted-foreground);">Describe the video you want to create. Be creative with your prompts for best results!</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="text-center">
+                    <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style="background-color: var(--accent);">
+                        <span class="text-2xl font-bold text-white">3</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4" style="color: var(--foreground);">Get Your Video</h3>
+                    <p style="color: var(--muted-foreground);">Watch as AI transforms your image into a dynamic video. Download and share anywhere!</p>
+                </div>
+            </div>
+        </div>
+    </section>
 </body>
 </html>

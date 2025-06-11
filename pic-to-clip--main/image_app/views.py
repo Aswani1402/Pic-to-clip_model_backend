@@ -74,4 +74,5 @@ def home(request):
     """
     Displays the home page.
     """
-    return render(request, 'home.html')
+    return render(request, 'image_app/home.html')
+
