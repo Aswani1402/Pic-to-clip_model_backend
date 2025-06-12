@@ -368,14 +368,31 @@
                     <p class="mb-6" style="color: var(--muted-foreground);">Your video is ready to download and share</p>
                     
                     <!-- Mock video preview -->
-                    <div class="bg-gray-100 rounded-xl p-4 mb-6 max-w-md mx-auto">
-                        <div class="gradient-primary rounded-lg h-48 flex items-center justify-center">
-                            <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <p class="text-sm mt-2" style="color: var(--muted-foreground);">video_output.mp4</p>
-                    </div>
+                    {% if latest_video and latest_video.video_path %}
+<div class="bg-gray-100 rounded-xl p-4 mb-6 max-w-md mx-auto">
+    <video class="rounded-lg w-full h-auto shadow-md" controls>
+        <source src="{{ latest_video.video_path.url }}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <p class="text-sm mt-2" style="color: var(--muted-foreground);">
+        {{ latest_video.video_path.name|slice:"7:" }} <!-- remove "videos/" prefix -->
+    </p>
+</div>
+{% endif %}
+
+
+                    <div id="loadingSection" class="hidden">
+    <div id="progressBar">
+        <div id="progressFill" style="width: 0%"></div>
+    </div>
+    <p id="progressText">Starting...</p>
+</div>
+
+<div id="successSection" class="hidden">
+    <h3>Video Generated Successfully!</h3>
+    <div id="output-container"></div>
+</div>
+
 
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         <button class="btn btn-primary">
@@ -569,8 +586,8 @@
             simulateProgress();
         }
         
-        function simulateProgress() {
-            if (event) event.preventDefault();
+    function simulateProgress() {
+    if (event) event.preventDefault();
     const fileInput = document.getElementById('file-input');
     const promptInput = document.getElementById('prompt-input');
     const csrfTokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
@@ -629,6 +646,8 @@
         alert('Something went wrong during upload.');
     });
 }
+
+
 
 
         function resetUpload() {
