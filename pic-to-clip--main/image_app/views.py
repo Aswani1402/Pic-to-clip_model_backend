@@ -62,6 +62,7 @@ def handle_uploaded_file(f):
     f.name = filename
     return f
 
+
 def upload_image(request):
     """
     Handles image upload, runs video generation using a prompt,
@@ -81,7 +82,7 @@ def upload_image(request):
 
             try:
                 # Generate video using external model
-                video_path = generate_video_from_input(image_path, prompt)  # <--- INSERTED HERE
+                video_path = generate_video_from_input(image_path, prompt)
 
                 # Ensure video was downloaded and exists locally
                 if os.path.exists(video_path):
@@ -99,9 +100,12 @@ def upload_image(request):
             messages.error(request, "❌ Failed to upload image. Please check the form.")
     else:
         form = ImagePromptForm()
+        latest_video = ImagePrompt.objects.filter(video_path__isnull=False).order_by('-created_at').first()
 
-    return render(request, 'image_app/upload.html', {'form': form})
-
+    return render(request, 'image_app/upload.html', {
+        'form': form,
+        'latest_video': latest_video
+    })
 
 # def upload_image(request):
 #     """
